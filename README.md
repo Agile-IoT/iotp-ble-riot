@@ -1,15 +1,15 @@
 # OTP for RIOT on BLE-connected sensor
 
-Clone the repository and change directory
+Clone the repository and clone RIOT with the below command:
 
-    git clone https://github.com/Agile-IoT/iotp-riot.git && cd iotp-riot
+    git clone https://github.com/Agile-IoT/iotp-ble-riot.git && cd iotp-ble-riot && git clone https://github.com/RIOT-OS/RIOT.git
 
 In the Makefile, change the device you want to run the code on, according to [RIOT OS Tutorial](https://github.com/RIOT-OS/Tutorials/tree/master/task-01).
 
     #BOARD ?= native
     BOARD ?=nrf52dk
     
-Flash the board and open a shell on the board:
+Flash the board and open a shell on the board (use `sudo` if needed):
 
     make all flash term
 
