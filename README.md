@@ -13,89 +13,85 @@ Flash the board and open a shell on the board:
 
     make all flash term
 
-The output of the shell indicates launching BLE connectivity and sensor data notifications (visible on an AGILE gateway, once connected):
+The output of the shell indicates launching BLE connectivity and sensor data notifications (visible on an [AGILE gateway](http://agile-iot.eu/wiki/index.php?title=Main_Page), once connected):
 
     INFO # main(): This is RIOT! (Version: 2018.07-devel-548-g83abf-HOST.lan)
     INFO # OTP application for AGILE with RIOT
     INFO # Please refer to the README.md for further information
+    INFO # 
+    INFO # Successfully identity key in flash memory at page 124.
     INFO # 
     INFO # Advertised device name: 'SensorTag RIOT'
     INFO # Starting BLE sensor notifications!
     INFO # Type 'help' for available shell commands.
 
     
-## Write to internal storage
+## Read OTP key from internal storage  
 
-Write an Indentity Key (IK) to the internal storage on the IoT device with the following command:
+Read the current key from the internal storage with the following command on the RIOT shell:
 
-    write_ik PAGE STRING
+    read_ik
+    
+Example output:
+
+    INFO # Key read in flash page 124
+    INFO # e2 e1 2c 22 81 cd f3 d3 50 a3 4d e4 d5 f5 66 18
+
+## Read OTP counter in internal storage
+
+Read the current counter in the internal storage on the IoT device with the following command in the RIOT shell:
+
+    read_cnt
+
+Example output:
+
+    INFO # Counter read: 0
+    
+## Reset OTP key in internal storage
+
+Write an Indentity Key (IK) to the internal storage on the IoT device with the following command in the RIOT shell:
+
+    write_ik STRING
     
 For example:
 
-    write_ik 127 e2e12c2281cdf3d350a34de4d5f56613
+    write_ik e2e12c2281cdf3d350a34de4d5f56618
 
 The above example outputs
 
-    INFO # write_ik 127 e2e12c2281cdf3d350a34de4d5f56613
-    INFO # got page 127
-    INFO # successfully wrote identity key in flash memory.
-    
-## Read from internal storage  
+    INFO # Input Key: e2 e1 2c 22 81 cd f3 d3 50 a3 4d e4 d5 f5 66 18
+    INFO # successfully wrote identity key in flash memory at page 124.
+   
+## Reset OTP counter in internal storage
 
-Read a string from the internal storage with the following pattern
+Overwrite the current counter in the internal storage on the IoT device with the following command in the RIOT shell:
 
-    read_ik PAGE
+    write_cnt INT
     
 For example:
 
-    read_ik 127
-    
-The above example outputs
-
-    INFO # Read flash page 127 into local page buffer
-    INFO # Key read in internal memory:
-    INFO # e2e12c2281cdf3d350a34de4d5f56613
+    write_cnt 13
 
 ## Periodic EIDs Generation
 
-Once you have set the Idenditiy Key with write_ik, you can launch periodic OTP generation with
+From a remote device (e.g. from a smartphone using the [nRF Connect app](https://www.nordicsemi.com/eng/Products/Nordic-mobile-Apps/nRF-Connect-for-Mobile), or from the [AGILE gateway](http://agile-iot.eu/wiki/index.php?title=Main_Page)) successive One-Time-Password values are exposed as a dedicated BLE GATT service characteristic (with UUID 8491945D785011E8B45ADA24CD01F044) which can be read.
 
-    run_otp PAGE
-    
-Below is an instance of output in the RIOT shell:
+On the IoT device itself, the current OTP value can be printed with the below command:
 
-    INFO #  run_otp 127
-    INFO # Key read in internal memory:
-    INFO # e2e12c2281cdf3d350a34de4d5f56613
-    INFO # Counter read in internal memory: 
-    INFO # 0 
-    INFO # Init Key Data: 15 14 59 55 54 91 15 15 54 95 51 15 15 15 55 45 
-    INFO # Temporary Key Data: 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 
-    INFO # Temporary Key: 5f 18 ec e8 6e c7 f0 f6 d9 31 cb 35 72 5c 1c 61 
-    INFO # Ephermal Id Data: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-    INFO # Ephermal Id: b5 94 53 c4 9b 21 2f 01 74 d6 9a 22 6e cd 7e 31 
-    INFO # Generated OTP: b5 94 53 c4 9b 21 2f 01 
-    INFO # Key read in internal memory:
-    INFO # e2e12c2281cdf3d350a34de4d5f56613
-    INFO # Counter read in internal memory: 
-    INFO # 1 
-    INFO # Init Key Data: 15 14 59 55 54 91 15 15 54 95 51 15 15 15 55 45 
-    INFO # Temporary Key Data: 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 
-    INFO # Temporary Key: 5f 18 ec e8 6e c7 f0 f6 d9 31 cb 35 72 5c 1c 61 
-    INFO # Ephermal Id Data: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 
-    INFO # Ephermal Id: 26 55 8e 29 96 6a 83 b3 b8 58 7f c8 70 c3 e1 a2 
-    INFO # Generated OTP: 26 55 8e 29 96 6a 83 b3 
-    INFO # Key read in internal memory: 
-    INFO # e2e12c2281cdf3d350a34de4d5f56613
-    INFO # Counter read in internal memory: 
-    INFO # 2 
-    INFO # Init Key Data: 15 14 59 55 54 91 15 15 54 95 51 15 15 15 55 45 
-    INFO # Temporary Key Data: 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 
-    INFO # Temporary Key: 5f 18 ec e8 6e c7 f0 f6 d9 31 cb 35 72 5c 1c 61 
-    INFO # Ephermal Id Data: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 02 
-    INFO # Ephermal Id: 83 87 0d 60 84 f3 d2 2d 39 44 4b fd cf 54 fc 8e 
-    INFO # Generated OTP: 83 87 0d 60 84 f3 d2 2d 
-    INFO # Key read in internal memory:
-    INFO # e2e12c2281cdf3d350a34de4d5f56613
-    INFO # Counter read in internal memory: 
-    ...
+    print_otp
+
+Example output:
+
+    INFO # Key: 
+    INFO # e2 e1 2c 22 81 cd f3 d3 50 a3 4d e4 d5 f5 66 18 
+    INFO # Counter value: 8
+    INFO # Generated OTP: 45 85 56 bc c9 e2 cb 4d 
+
+## Changing the default OTP parameters
+
+The default flash page number and the default identity key, as well as key size and token size parameters can be changed in the files `eid.h` and `eid.c`
+
+## Checking sensor values
+
+From a remote device (e.g. from a smartphone using the [nRF Connect app](https://www.nordicsemi.com/eng/Products/Nordic-mobile-Apps/nRF-Connect-for-Mobile), or from the [AGILE gateway](http://agile-iot.eu/wiki/index.php?title=Main_Page)) sensor values are exposed and accessible as dedicated BLE GATT services and characteristics --mimicking the TI SensorTag UUIDs.
+

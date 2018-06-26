@@ -24,9 +24,10 @@
 
 
 #include "ble_sensors.h"
+#include "eid.h"
 
-static const char *manuf_name = "Texas Instruments";
-static const char *model_num = "CC2650 SensorTag";
+static const char *manuf_name = "RIOT";
+static const char *model_num = "RIOT SensorTag";
 uint16_t hrs_hrm_handle;
 uint16_t variation = 0;
 
@@ -40,14 +41,6 @@ gatt_svr_chr_access_hum_data(uint16_t conn_handle, uint16_t attr_handle,
 
 static int
 gatt_svr_chr_access_press_data(uint16_t conn_handle, uint16_t attr_handle,
-                               struct ble_gatt_access_ctxt *ctxt, void *arg);
-
-static int
-gatt_svr_chr_access_temperature_conf(uint16_t conn_handle, uint16_t attr_handle,
-                               struct ble_gatt_access_ctxt *ctxt, void *arg);
-                               
-static int
-gatt_svr_chr_access_temperature_peri(uint16_t conn_handle, uint16_t attr_handle,
                                struct ble_gatt_access_ctxt *ctxt, void *arg);
 
 static int
@@ -65,6 +58,19 @@ gatt_svr_chr_access_io_data(uint16_t conn_handle, uint16_t attr_handle,
 static int
 gatt_svr_chr_access_io_conf(uint16_t conn_handle, uint16_t attr_handle,
                                struct ble_gatt_access_ctxt *ctxt, void *arg);
+
+static int
+gatt_svr_chr_access_dummy_conf(uint16_t conn_handle, uint16_t attr_handle,
+                               struct ble_gatt_access_ctxt *ctxt, void *arg);
+                               
+static int
+gatt_svr_chr_access_dummy_peri(uint16_t conn_handle, uint16_t attr_handle,
+                               struct ble_gatt_access_ctxt *ctxt, void *arg);
+                               
+static int
+gatt_svr_chr_access_otp_data(uint16_t conn_handle, uint16_t attr_handle,
+                               struct ble_gatt_access_ctxt *ctxt, void *arg);
+                               
 
 static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
     {
@@ -98,12 +104,12 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
         }, {
             /* Characteristic: Temperature conf */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_temp_conf_uuid.u,
-            .access_cb = gatt_svr_chr_access_temperature_conf,
+            .access_cb = gatt_svr_chr_access_dummy_conf,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             /* Characteristic: Temperature peri */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_temp_peri_uuid.u,
-            .access_cb = gatt_svr_chr_access_temperature_peri,
+            .access_cb = gatt_svr_chr_access_dummy_peri,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             0, /* No more characteristics in this service */
@@ -123,13 +129,13 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
             /* Characteristic: Humidity conf */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_hum_conf_uuid.u,
             /* TO DO CALL BACK */
-            .access_cb = gatt_svr_chr_access_temperature_conf,
+            .access_cb = gatt_svr_chr_access_dummy_conf,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             /* Characteristic: Humidity peri */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_hum_peri_uuid.u,
             /* TO DO CALL BACK */
-            .access_cb = gatt_svr_chr_access_temperature_peri,
+            .access_cb = gatt_svr_chr_access_dummy_peri,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             0, /* No more characteristics in this service */
@@ -149,13 +155,13 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
             /* Characteristic: Pressure conf */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_press_conf_uuid.u,
             /* TO DO CALL BACK */
-            .access_cb = gatt_svr_chr_access_temperature_conf,
+            .access_cb = gatt_svr_chr_access_dummy_conf,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             /* Characteristic: Pressure peri */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_press_peri_uuid.u,
             /* TO DO CALL BACK */
-            .access_cb = gatt_svr_chr_access_temperature_peri,
+            .access_cb = gatt_svr_chr_access_dummy_peri,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             0, /* No more characteristics in this service */
@@ -175,13 +181,13 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
             /* Characteristic: Optical conf */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_opt_conf_uuid.u,
             /* TO DO CALL BACK */
-            .access_cb = gatt_svr_chr_access_temperature_conf,
+            .access_cb = gatt_svr_chr_access_dummy_conf,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             /* Characteristic: Optical peri */
             .uuid = (ble_uuid_t*)&gatt_svr_chr_opt_peri_uuid.u,
             /* TO DO CALL BACK */
-            .access_cb = gatt_svr_chr_access_temperature_peri,
+            .access_cb = gatt_svr_chr_access_dummy_peri,
             .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
         }, {
             0, /* No more characteristics in this service */
@@ -205,16 +211,35 @@ static const struct ble_gatt_svc_def gatt_svr_svcs[] = {
             0, /* No more characteristics in this service */
         }, }
     },
+        {
+        /* Service: OTP */
+        .type = BLE_GATT_SVC_TYPE_PRIMARY,
+        .uuid = (ble_uuid_t*)&gatt_svr_chr_otp_serv_uuid.u,
+        .characteristics = (struct ble_gatt_chr_def[]) { {
+            /* Characteristic: OTP data */
+            .uuid = (ble_uuid_t*)&gatt_svr_chr_otp_data_uuid.u,
+            .access_cb = gatt_svr_chr_access_otp_data,
+            .flags = BLE_GATT_CHR_F_READ,
+        }, {
+            /* Characteristic: OTP conf */
+            .uuid = (ble_uuid_t*)&gatt_svr_chr_otp_conf_uuid.u,
+            .access_cb = gatt_svr_chr_access_dummy_conf,
+            .flags = BLE_GATT_CHR_F_READ | BLE_GATT_CHR_F_WRITE,
+        }, {
+            0, /* No more characteristics in this service */
+        }, }
+    },
     {
             0, /* No more services */
     },
 };
 
+
 static int
 gatt_svr_chr_access_temperature_data(uint16_t conn_handle, uint16_t attr_handle,
                                struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
-    /* DUMMY temperature value: 54 67 08 8b */
+    /* DUMMY temperature: 54 67 08 8b */
     static uint32_t dummy_temperature = 0x4867088b;
     /* DUMMY variation */
     /* dummy_temperature = dummy_temperature + variation;
@@ -223,6 +248,37 @@ gatt_svr_chr_access_temperature_data(uint16_t conn_handle, uint16_t attr_handle,
     (void)attr_handle;
     (void)arg;
     int rc = os_mbuf_append(ctxt->om, &dummy_temperature, sizeof(dummy_temperature));
+
+    return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
+
+    assert(0);
+    return BLE_ATT_ERR_UNLIKELY;
+}
+
+
+static int
+gatt_svr_chr_access_otp_data(uint16_t conn_handle, uint16_t attr_handle,
+                               struct ble_gatt_access_ctxt *ctxt, void *arg)
+{
+
+    static uint8_t otp_value[8] = {0};
+    int rc = next_otp(otp_value);
+    if(rc != 0) {
+        puts("Error: problem getting next OTP value.");
+        return BLE_ATT_ERR_UNLIKELY;
+    }
+    
+    printf("Sending OTP value: ");
+    for(int i = 0; i < 8; ++i){
+    printf("%02x ", otp_value[i]);
+    }
+    printf("\n");
+    
+    (void)conn_handle;
+    (void)attr_handle;
+    (void)arg;
+
+    rc = os_mbuf_append(ctxt->om, &otp_value, sizeof(otp_value));
 
     return rc == 0 ? 0 : BLE_ATT_ERR_INSUFFICIENT_RES;
 
@@ -294,7 +350,7 @@ gatt_svr_chr_access_optical_data(uint16_t conn_handle, uint16_t attr_handle,
 }
 
 static int
-gatt_svr_chr_access_temperature_conf(uint16_t conn_handle, uint16_t attr_handle,
+gatt_svr_chr_access_dummy_conf(uint16_t conn_handle, uint16_t attr_handle,
                                struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     /* DUMMY value */
@@ -312,7 +368,7 @@ gatt_svr_chr_access_temperature_conf(uint16_t conn_handle, uint16_t attr_handle,
 }
 
 static int
-gatt_svr_chr_access_temperature_peri(uint16_t conn_handle, uint16_t attr_handle,
+gatt_svr_chr_access_dummy_peri(uint16_t conn_handle, uint16_t attr_handle,
                                struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     /* DUMMY value */
@@ -353,7 +409,7 @@ gatt_svr_chr_access_io_conf(uint16_t conn_handle, uint16_t attr_handle,
                                struct ble_gatt_access_ctxt *ctxt, void *arg)
 {
     /* DUMMY value */
-    static uint8_t dummy_value = 0x00;
+    static uint8_t dummy_value[2] = {0x00, 0x01};
     (void)conn_handle;
     (void)attr_handle;
     (void)arg;
