@@ -44,6 +44,14 @@ void *notificationthread_handler(void *arg)
     int counter = 0;
     
     while(1) {
+    
+        rc = ble_gatts_find_chr(&gatt_svr_chr_otp_serv_uuid.u, &gatt_svr_chr_otp_data_uuid.u, NULL, &chr_val_handle);
+        if(rc == 0){
+        ble_gatts_chr_updated(chr_val_handle);
+        }
+        else puts("Error: finding OTP service handle");
+        xtimer_sleep(1);
+    
         rc = ble_gatts_find_chr(&gatt_svr_chr_temp_serv_uuid.u, &gatt_svr_chr_temp_data_uuid.u, NULL, &chr_val_handle);
         if(rc == 0){
         ble_gatts_chr_updated(chr_val_handle);
