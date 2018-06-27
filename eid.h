@@ -6,7 +6,7 @@
 
 #define DEFAULT_IK_SIZE 16
 #define DEFAULT_TS_SIZE 8
-#define OTP_FLASH_PAGE (FLASHPAGE_NUMOF - 4)
+#define OTP_FLASH_PAGE (FLASHPAGE_NUMOF - 1)
 
 
 static uint8_t page_mem[FLASHPAGE_SIZE] = {0};
