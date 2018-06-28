@@ -1,15 +1,18 @@
 # OTP for RIOT on BLE-connected sensor
 
-Clone the repository and clone RIOT with the below command:
+This example demonstrates One-Time-Passwords (OTP) computed on a RIOT device, communicating successive sensor values and OTP values over Bluetooth Low-Energy (BLE). 
 
-    git clone https://github.com/Agile-IoT/iotp-ble-riot.git && cd iotp-ble-riot && git clone https://github.com/RIOT-OS/RIOT.git
+*Preliminary*: you must either have the necessary toolchain to compile RIOT, or a VM as described in the [RIOT Tutorial](https://github.com/RIOT-OS/Tutorials).
 
-In the Makefile, change the device you want to run the code on, according to [RIOT OS Tutorial](https://github.com/RIOT-OS/Tutorials/tree/master/task-01).
+Clone the repositories and jump into the right directory using the following command in your terminal:
 
-    #BOARD ?= native
+    git clone https://github.com/Agile-IoT/iotp-ble-riot.git && cd iotp-ble-riot && git clone https://github.com/RIOT-OS/RIOT.git && cd RIOT && git checkout 83abf11f2f56dbf389edde66f89f891ec7a7929e && cd ..
+
+In the Makefile, change the device you want to run the code on, the default board is set to nrf52dk as such:
+
     BOARD ?=nrf52dk
     
-Flash the board and open a shell on the board (use `sudo` if needed):
+Flash the board and open a shell on the board:
 
     make all flash term
 
